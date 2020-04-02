@@ -1,0 +1,103 @@
+%if 0%{?fedora} && 0%{?fedora} <= 29 || 0%{?rhel} && 0%{?rhel} <= 7
+%global with_python3 0
+%else
+%global with_python3 1
+%endif
+
+%global _legacy_common_support 1
+
+Name:           nautilus-python
+Version:        @VERSION@
+Release:        @REL@%{?dist}
+Summary:        Python bindings for Nautilus
+
+License:        GPLv2+
+URL:            https://wiki.gnome.org/Projects/NautilusPython
+Source0:        https://download.gnome.org/sources/%{name}/%(v=%{version}; echo ${v:0:3}; )/%{name}-%{version}.tar.xz
+
+BuildRequires:  gtk-doc
+BuildRequires:  nautilus-devel
+BuildRequires:  pygobject3-devel
+%if %{with_python3}
+BuildRequires:  python3-devel
+%else
+BuildRequires:  python2-devel
+%endif
+
+Requires:       nautilus >= 3.0
+%if %{with_python3}
+Requires:       python3-gobject-base%{?_isa}
+%else
+%if 0%{?rhel} == 7
+Requires:       python-gobject-base%{?_isa}
+%else
+Requires:       python2-gobject-base%{?_isa}
+%endif
+%endif
+
+# Renamed / Obsoleted in F30
+Provides:       python2-nautilus = %{version}-%{release}
+Provides:       python2-nautilus%{?_isa} = %{version}-%{release}
+Obsoletes:      python2-nautilus < %{version}-%{release}
+# Renamed / Obsoleted in F30
+Provides:       python3-nautilus = %{version}-%{release}
+Provides:       python3-nautilus%{?_isa} = %{version}-%{release}
+Obsoletes:      python3-nautilus < %{version}-%{release}
+
+%description
+Python bindings for Nautilus
+
+
+%package devel
+Summary:        Python bindings for Nautilus
+Requires:       %{name}%{?_isa} = %{version}-%{release}
+# Renamed / Obsoleted in F30
+Provides:       python2-nautilus-devel = %{version}-%{release}
+Provides:       python2-nautilus-devel%{?_isa} = %{version}-%{release}
+Obsoletes:      python2-nautilus-devel < %{version}-%{release}
+# Renamed / Obsoleted in F30
+Provides:       python3-nautilus-devel = %{version}-%{release}
+Provides:       python3-nautilus-devel%{?_isa} = %{version}-%{release}
+Obsoletes:      python3-nautilus-devel < %{version}-%{release}
+
+%description devel
+Python bindings for Nautilus
+
+
+%prep
+%setup -q
+
+%build
+%if %{with_python3}
+export PYTHON="%{__python3}"
+%else
+export PYTHON="%{__python2}"
+%endif
+%configure \
+  --enable-gtk-doc
+%make_build
+
+
+%install
+%make_install
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/nautilus-python/extensions
+find $RPM_BUILD_ROOT -name '*.la' -delete
+rm -rfv $RPM_BUILD_ROOT%{_docdir}
+
+
+%files
+%license COPYING
+%doc README AUTHORS NEWS
+%{_libdir}/nautilus/extensions-3.0/libnautilus-python.so
+%dir %{_datadir}/nautilus-python/extensions
+
+%files devel
+%doc examples/
+%{_libdir}/pkgconfig/nautilus-python.pc
+%dir %{_datadir}/gtk-doc
+%dir %{_datadir}/gtk-doc/html
+%{_datadir}/gtk-doc/html/nautilus-python/
+
+
+%changelog
+@CHANGELOG@
